@@ -447,7 +447,19 @@ def main(args):
     #light.set_type('POINT')
     #light.set_energy(100) # watts per sq. meter
 
-    light = bp.lighting.add_intersecting_spot_lights_to_camera_poses(5.0, 50.0)
+    # Lighting
+    # 默认使用随机相机相交的聚光灯，会带来较强的方向性高光（尤其当材质 Ks/Ns 较大时，
+    # 视觉上可能让“偏白”看起来像“变灰/变暗”）。为了便于排查，可以用 --fixed_lighting
+    # 切到更稳定的纯漫反射照明。
+    if args.fixed_lighting:
+        bp.renderer.set_world_background([1.0, 1.0, 1.0], 1.5)
+        fixed_light = bp.types.Light()
+        fixed_light.set_type('SUN')
+        fixed_light.set_energy(2.0)
+        fixed_light.set_rotation_euler([0.8, 0.0, 0.8])
+        light = None
+    else:
+        light = bp.lighting.add_intersecting_spot_lights_to_camera_poses(5.0, 50.0)
 
 
     # Renderer setup
@@ -549,11 +561,18 @@ def main(args):
                 background = randomize_background(background_path, args.width, args.height)
                 background = background.convert('RGB') # some images may be B&W
                 # Pasting the current image on the selected background
-                background.paste(im, mask=im.convert('RGBA'))
+                # NOTE: PIL.Image.paste expects a single-channel mask (typically alpha).
+                # Passing an RGBA image as mask can lead to incorrect colors / dark halos.
+                im_rgba = im.convert('RGBA')
+                alpha = im_rgba.split()[-1]
+                background.paste(im_rgba, mask=alpha)
                 im = background
 
         if args.debug:
             im = draw_cuboid_markers(objects, bp.camera, im)
+
+        # 保险：极少数情况下（并行/中断/外部清理）目录可能会消失，导致 FileNotFoundError。
+        os.makedirs(out_directory, exist_ok=True)
 
         filename = os.path.join(out_directory, str(frame).zfill(6) + ".png")
         im.save(filename)
@@ -673,6 +692,14 @@ if __name__ == "__main__":
         default=False,
         help="Render the cuboid corners as small spheres. Only for debugging purposes;"
         "do not use for training!"
+    )
+
+    parser.add_argument(
+        '--fixed_lighting',
+        action='store_true',
+        default=False,
+        help='Use stable lighting (SUN + bright world) instead of randomized spot lights. '
+             'Useful for diagnosing material color shifts (e.g., mat3 looks gray).'
     )
 
     opt = parser.parse_args()

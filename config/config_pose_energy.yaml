@@ -1,0 +1,47 @@
+topic_camera: "/dope/webcam/image_raw"
+topic_camera_info: "/dope/webcam/camera_info"
+topic_publishing: "dope"
+input_is_rectified: True   # 强烈建议保持 True（尤其是 RealSense 已做畸变校正时）
+downscale_height: 400      # 输入图像高于该值时会缩放（推理时相机会随之缩放）
+
+# 训练脚本 train/train.py 只要求 ground-truth json 里的 "class" 字段与 --object 一致。
+# 推理脚本 inference/inference.py 额外要求该类出现在 dimensions/class_ids 中。
+
+# 推理时如果你想直接从该文件里拿权重（ROS 会用到），可在这里配置；
+# inference/inference.py 不依赖该字段。
+weights: {
+    # "energy": "package://dope/weights/energy.pth",
+}
+
+# Cuboid dimension in cm x,y,z （注意：这里单位是厘米，不是米）
+# 你提供的尺寸为米：x=0.095 y=0.095 z=0.15
+# 换算为厘米：9.5, 9.5, 15.0
+dimensions: {
+    "energy": [9.5, 9.5, 15.0],
+}
+
+class_ids: {
+    "energy": 1,
+}
+
+draw_colors: {
+    "energy": [0, 255, 0],
+}
+
+meshes: {
+    # 可选：用于 RViz/可视化。file:// 需要绝对路径。
+    # "energy": "file:///home/xylin/Deep_Object_Pose/energy_OBJ/energy.obj",
+}
+
+# 可选：如果 meshes 的单位不是米，在这里提供缩放。
+mesh_scales: {
+    "energy": 1.0,
+}
+
+overlay_belief_images: True
+
+# DOPE 推理超参（先沿用默认；效果不稳再调）
+thresh_angle: 0.5
+thresh_map: 0.01
+sigma: 3
+thresh_points: 0.1

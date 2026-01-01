@@ -1,0 +1,32 @@
+# RealSense D435 相机内参模板
+# 说明：inference/inference.py 在 input_is_rectified=True 时只读取 projection_matrix.data
+# 请把 fx, fy, cx, cy 替换为你 D435 对应分辨率与 stream 的值。
+
+image_width: 640
+image_height: 480
+camera_name: realsense_d435
+
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [608.4203229188204, 0, 326.1461812221909, 0, 609.3112310970877, 261.7958452658269, 0, 0, 1]
+
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [0.11099466136641911,-0.07304524842784545,0.006418515273744604,0.0018016331310878662,-0.3801759129072073]
+
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1, 0, 0, 0, 1, 0, 0, 0, 1]
+
+projection_matrix:
+  rows: 3
+  cols: 4
+  # 需要的格式：
+  # [fx,  0, cx, 0,
+  #   0, fy, cy, 0,
+  #   0,  0,  1, 0]
+  data: [608.4203229188204, 0, 326.1461812221909, 0, 0, 609.3112310970877, 261.7958452658269, 0, 0, 0, 1, 0]
